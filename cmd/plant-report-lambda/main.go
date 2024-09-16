@@ -8,9 +8,11 @@ import (
 
 	plant "github.com/HealthyTechGuy/plant-report-app/internal/plant-service"
 	models "github.com/HealthyTechGuy/plant-report-app/models" // Import shared models
+	"github.com/HealthyTechGuy/plant-report-app/pkg/logger"
 	"github.com/HealthyTechGuy/plant-report-app/pkg/pdf"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"go.uber.org/zap"
 )
 
 var plantService plant.PlantServiceInterface
@@ -25,6 +27,9 @@ func init() {
 // HandleRequest is the main Lambda function handler
 func HandleRequest(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var req models.Request
+
+	logger.InitLogger("debug")
+	defer logger.SyncLogger()
 
 	// Unmarshal the request body
 	if err := json.Unmarshal([]byte(request.Body), &req); err != nil {

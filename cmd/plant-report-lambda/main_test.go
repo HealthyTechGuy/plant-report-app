@@ -1,72 +1,154 @@
 package main
 
 import (
-	"net/http"
+	"context"
+	"encoding/json"
 	"testing"
 
-	plant "github.com/HealthyTechGuy/plant-report-app/internal/plant-service"
-	"github.com/HealthyTechGuy/plant-report-app/pkg/pdf"
-
+	"github.com/HealthyTechGuy/plant-report-app/internal/plant-service/mocks"
+	"github.com/HealthyTechGuy/plant-report-app/models"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/mock"
 )
 
-type MockPDFGenerator struct{}
+func TestHandleRequest_Success(t *testing.T) {
+	mockPlantService := new(mocks.MockPlantService)
+	mockPDFGenerator := new(mocks.MockPDFGenerator)
 
-func (m *MockPDFGenerator) GeneratePDF(plantInfo *plant.PlantInfo) ([]byte, error) {
-	return []byte("mock PDF content"), nil
-}
+	// Mock plant info
+	plantInfo := models.PlantInfo{
+		ID:              "blueberry",
+		Name:            "Blueberry Bush",
+		GrowingPeriod:   "6-8 months",
+		OptimalPlanting: "Spring",
+		HardinessZone:   "5-7",
+	}
 
-func TestHandler_Success(t *testing.T) {
-	// Arrange
-	pdfGenerator = &MockPDFGenerator{}
-	request := events.APIGatewayProxyRequest{
-		QueryStringParameters: map[string]string{
-			"location": "your-location",
-			"plant":    "Blueberry Bush",
+	// Mock plant service response
+	mockPlantService.On("GetPlantInfo", "blueberry").Return(plantInfo, nil)
+
+	// Mock PDF generation with []byte return type
+	mockPDFGenerator.On("GeneratePDF", mock.Anything, plantInfo).Return([]byte("PDF content"), nil)
+
+	// Set the global variables
+	plantService = mockPlantService
+	pdfGenerator = mockPDFGenerator
+
+	// Create a sample request
+	req := models.Request{
+		Location: struct {
+			Latitude  float64 `json:"latitude"`
+			Longitude float64 `json:"longitude"`
+		}{
+			Latitude:  999.9,
+			Longitude: 999.9,
 		},
+		PlantID: "blueberry",
 	}
+	reqBody, _ := json.Marshal(req)
 
-	// Act
-	response, err := handler(request)
+	// Call the Lambda handler
+	response, err := HandleRequest(context.TODO(), events.APIGatewayProxyRequest{
+		Body: string(reqBody),
+	})
 
-	// Assert
-	require.NoError(t, err)
-	assert.Equal(t, http.StatusOK, response.StatusCode)
-	assert.Contains(t, response.Body, "PDF generated successfully")
+	// Assert no error occurred
+	assert.NoError(t, err)
+
+	// Assert response
+	assert.Equal(t, 200, response.StatusCode)
+	assert.Contains(t, response.Body, "PDF report generated successfully")
+
+	// Assert the PDF URL in the response
+	mockPlantService.AssertCalled(t, "GetPlantInfo", "blueberry")
+	mockPDFGenerator.AssertCalled(t, "GeneratePDF", mock.Anything, plantInfo)
 }
 
-func TestHandler_MissingParameters(t *testing.T) {
-	// Arrange
-	request := events.APIGatewayProxyRequest{
-		QueryStringParameters: map[string]string{},
-	}
+func TestHandleRequest_InvalidRequestBody(t *testing.T) {
+	// Call the Lambda handler with an invalid body
+	response, err := HandleRequest(context.TODO(), events.APIGatewayProxyRequest{
+		Body: "invalid",
+	})
 
-	// Act
-	response, err := handler(request)
+	// Assert an error occurred
+	assert.NoError(t, err)
 
-	// Assert
-	require.NoError(t, err)
-	assert.Equal(t, http.StatusBadRequest, response.StatusCode)
-	assert.Equal(t, "Missing location or plant name", response.Body)
+	// Assert response
+	assert.Equal(t, 400, response.StatusCode)
+	assert.Contains(t, response.Body, "Invalid request body")
 }
 
-func TestHandler_PDFGenerationError(t *testing.T) {
-	// Arrange
-	pdfGenerator = &pdf.ErrorGeneratingPDF{} // Assuming this is a custom type that returns an error
-	request := events.APIGatewayProxyRequest{
-		QueryStringParameters: map[string]string{
-			"location": "your-location",
-			"plant":    "Blueberry Bush",
+func TestHandleRequest_MissingFields(t *testing.T) {
+	mockPlantService := new(mocks.MockPlantService)
+	mockPDFGenerator := new(mocks.MockPDFGenerator)
+
+	// Set the global variables
+	plantService = mockPlantService
+	pdfGenerator = mockPDFGenerator
+
+	// Create a sample request with missing fields
+	req := models.Request{
+		Location: struct {
+			Latitude  float64 `json:"latitude"`
+			Longitude float64 `json:"longitude"`
+		}{
+			Latitude:  0,
+			Longitude: 0,
 		},
+		PlantID: "blueberry",
 	}
+	reqBody, _ := json.Marshal(req)
 
-	// Act
-	response, err := handler(request)
+	// Call the Lambda handler
+	response, err := HandleRequest(context.TODO(), events.APIGatewayProxyRequest{
+		Body: string(reqBody),
+	})
 
-	// Assert
-	require.NoError(t, err)
-	assert.Equal(t, http.StatusInternalServerError, response.StatusCode)
-	assert.Equal(t, "Error generating PDF", response.Body)
+	// Assert an error occurred
+	assert.NoError(t, err)
+
+	// Assert response
+	assert.Equal(t, 400, response.StatusCode)
+	assert.Contains(t, response.Body, "Missing required fields: plant_id, latitude, and longitude")
+}
+
+func TestHandleRequest_FailedPlantInfo(t *testing.T) {
+	mockPlantService := new(mocks.MockPlantService)
+	mockPDFGenerator := new(mocks.MockPDFGenerator)
+	plantInfo := models.PlantInfo{}
+	// Mock plant service to return an error
+	mockPlantService.On("GetPlantInfo", "1").Return(plantInfo, assert.AnError)
+
+	// Set the global variables
+	plantService = mockPlantService
+	pdfGenerator = mockPDFGenerator
+
+	// Create a sample request
+	req := models.Request{
+		Location: struct {
+			Latitude  float64 `json:"latitude"`
+			Longitude float64 `json:"longitude"`
+		}{
+			Latitude:  40.7128,
+			Longitude: -74.0060,
+		},
+		PlantID: "1",
+	}
+	reqBody, _ := json.Marshal(req)
+
+	// Call the Lambda handler
+	response, err := HandleRequest(context.TODO(), events.APIGatewayProxyRequest{
+		Body: string(reqBody),
+	})
+
+	// Assert no error occurred
+	assert.NoError(t, err)
+
+	// Assert response
+	assert.Equal(t, 500, response.StatusCode)
+	assert.Contains(t, response.Body, "Failed to fetch plant information")
+
+	// Assert that the plant service was called
+	mockPlantService.AssertCalled(t, "GetPlantInfo", "1")
 }
