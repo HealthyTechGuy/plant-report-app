@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/HealthyTechGuy/plant-report-app/internal/plant-service/mocks"
+	"github.com/HealthyTechGuy/plant-report-app/models"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/golang/mock/gomock"
@@ -22,7 +23,7 @@ func TestGetPlantInfo_Success(t *testing.T) {
 		tableName:      "test-table",
 	}
 
-	expectedPlantInfo := &PlantInfo{
+	expectedPlantInfo := models.PlantInfo{
 		ID:              "1",
 		Name:            "Blueberry Bush",
 		GrowingPeriod:   "May to August",
