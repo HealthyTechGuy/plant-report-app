@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/HealthyTechGuy/plant-report-app/models"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -17,22 +18,13 @@ var (
 
 // PlantServiceInterface defines the methods for interacting with plant data
 type PlantServiceInterface interface {
-	GetPlantInfo(plantID string) (*PlantInfo, error)
+	GetPlantInfo(plantID string) (models.PlantInfo, error)
 }
 
 // PlantService is a concrete implementation of PlantServiceInterface
 type PlantService struct {
 	dynamoDBClient dynamodbiface.DynamoDBAPI
 	tableName      string
-}
-
-// PlantInfo holds information about a plant
-type PlantInfo struct {
-	ID              string `json:"id"`
-	Name            string `json:"name"`
-	GrowingPeriod   string `json:"growing_period"`
-	OptimalPlanting string `json:"optimal_planting"`
-	HardinessZone   string `json:"hardiness_zone"`
 }
 
 // NewPlantService creates a new PlantService
@@ -45,7 +37,7 @@ func NewPlantService(tableName string) *PlantService {
 }
 
 // GetPlantInfo retrieves plant information from DynamoDB
-func (s *PlantService) GetPlantInfo(plantID string) (*PlantInfo, error) {
+func (s *PlantService) GetPlantInfo(plantID string) (pi models.PlantInfo, err error) {
 	result, err := s.dynamoDBClient.GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(s.tableName),
 		Key: map[string]*dynamodb.AttributeValue{
@@ -56,14 +48,14 @@ func (s *PlantService) GetPlantInfo(plantID string) (*PlantInfo, error) {
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to get item from DynamoDB: %w", err)
+		return pi, fmt.Errorf("failed to get item from DynamoDB: %w", err)
 	}
 
 	if result.Item == nil {
-		return nil, ErrPlantNotFound
+		return pi, ErrPlantNotFound
 	}
 
-	plantInfo := &PlantInfo{
+	plantInfo := models.PlantInfo{
 		ID:              *result.Item["id"].S,
 		Name:            *result.Item["name"].S,
 		GrowingPeriod:   *result.Item["growing_period"].S,

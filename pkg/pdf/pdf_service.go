@@ -4,23 +4,15 @@ import (
 	"bytes"
 	"log"
 
+	models "github.com/HealthyTechGuy/plant-report-app/models" // Import shared models
 	"github.com/jung-kurt/gofpdf"
 )
 
 // PDFService is a concrete implementation of the PDFGenerator interface
 type PDFService struct{}
 
-// PlantInfo holds information about a plant
-type PlantInfo struct {
-	ID              string
-	Name            string
-	GrowingPeriod   string
-	OptimalPlanting string
-	HardinessZone   string
-}
-
 // GeneratePDF creates a PDF report for a given plant information
-func (s *PDFService) GeneratePDF(plantInfo *PlantInfo) ([]byte, error) {
+func (s *PDFService) GeneratePDF(userLocation models.UserLocation, plantInfo models.PlantInfo) ([]byte, error) {
 	// Create a new PDF document
 	pdf := gofpdf.New("P", "mm", "A4", "")
 

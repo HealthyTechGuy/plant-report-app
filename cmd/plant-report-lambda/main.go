@@ -7,39 +7,29 @@ import (
 	"os"
 
 	plant "github.com/HealthyTechGuy/plant-report-app/internal/plant-service"
+	models "github.com/HealthyTechGuy/plant-report-app/models" // Import shared models
+	"github.com/HealthyTechGuy/plant-report-app/pkg/logger"
 	"github.com/HealthyTechGuy/plant-report-app/pkg/pdf"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"go.uber.org/zap"
 )
 
 var plantService plant.PlantServiceInterface
 var pdfGenerator pdf.PDFGenerator
 
-// Response represents the response returned by the Lambda function
-type Response struct {
-	Message string `json:"message"`
-	PDFUrl  string `json:"pdf_url"`
-	Error   string `json:"error,omitempty"`
-}
-
-// Request represents the expected input from the API Gateway
-type Request struct {
-	Location struct {
-		Latitude  float64 `json:"latitude"`
-		Longitude float64 `json:"longitude"`
-	} `json:"location"`
-	PlantID string `json:"plant_id"`
-}
-
 func init() {
 	// Initialize the services (DynamoDB, PDF generator)
 	plantService = plant.NewPlantService(os.Getenv("TABLE_NAME"))
-	pdfGenerator = pdf.NewPDFGenerator(os.Getenv("BUCKET_NAME"))
+	pdfGenerator = &pdf.PDFService{} // Updated to use the concrete implementation
 }
 
 // HandleRequest is the main Lambda function handler
 func HandleRequest(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var req Request
+	var req models.Request
+
+	logger.InitLogger("debug")
+	defer logger.SyncLogger()
 
 	// Unmarshal the request body
 	if err := json.Unmarshal([]byte(request.Body), &req); err != nil {
@@ -60,20 +50,28 @@ func HandleRequest(ctx context.Context, request events.APIGatewayProxyRequest) (
 		return responseWithError(500, "Failed to fetch plant information"), nil
 	}
 
+	usrLocation := models.UserLocation{
+		UserLatitude:  req.Location.Latitude,
+		UserLongitude: req.Location.Longitude,
+	}
+
 	// Generate the PDF report using the PDFGenerator
-	pdfURL, err := pdfGenerator.GenerateReport(req.Location.Latitude, req.Location.Longitude, plantInfo)
+	pdfURL, err := pdfGenerator.GeneratePDF(usrLocation, plantInfo)
 	if err != nil {
 		log.Println("Error generating PDF report:", err)
 		return responseWithError(500, "Failed to generate PDF report"), nil
 	}
 
+	// TODO - add method in here to upload report to S3.
+	logger.Info("pdfURL: ", zap.Any("value:", pdfURL))
+
 	// Return the success response with the PDF URL
-	return responseWithSuccess(200, pdfURL), nil
+	return responseWithSuccess(200, ""), nil
 }
 
 // responseWithSuccess creates a successful HTTP response with the PDF URL
 func responseWithSuccess(statusCode int, pdfURL string) events.APIGatewayProxyResponse {
-	response := Response{
+	response := models.Response{
 		Message: "PDF report generated successfully",
 		PDFUrl:  pdfURL,
 	}
@@ -86,7 +84,7 @@ func responseWithSuccess(statusCode int, pdfURL string) events.APIGatewayProxyRe
 
 // responseWithError creates an HTTP error response
 func responseWithError(statusCode int, message string) events.APIGatewayProxyResponse {
-	response := Response{
+	response := models.Response{
 		Message: message,
 	}
 	body, _ := json.Marshal(response)
