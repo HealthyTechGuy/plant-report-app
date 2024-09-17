@@ -1,0 +1,24 @@
+{
+    "name": "plant-report-infra",
+    "version": "1.0.0",
+    "description": "Infrastructure for the Plant Report app using AWS CDK",
+    "main": "bin/cdk.ts",
+    "scripts": {
+        "build": "tsc",
+        "watch": "tsc -w",
+        "cdk-deploy": "cdk deploy",
+        "cdk-destroy": "cdk destroy"
+    },
+    "dependencies": {
+        "@aws-cdk/aws-apigateway": "^1.203.0",
+        "@aws-cdk/aws-dynamodb": "^1.203.0",
+        "@aws-cdk/aws-ec2": "^1.203.0",
+        "@aws-cdk/aws-lambda": "^1.203.0",
+        "aws-cdk-lib": "^2.80.0",
+        "constructs": "^10.0.0",
+        "typescript": "^4.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^14.0.0"
+    }
+}
