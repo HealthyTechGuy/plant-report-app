@@ -1,0 +1,16 @@
+# Node modules
+node_modules/
+
+# CDK-related outputs
+cdk.out/
+
+# Compiled JavaScript files
+*.js
+*.d.ts
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Logs
+npm-debug.log
+yarn-error.log
