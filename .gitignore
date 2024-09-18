@@ -4,6 +4,9 @@ node_modules/
 # CDK-related outputs
 cdk.out/
 
+# Dist outputs
+dist/
+
 # Compiled JavaScript files
 *.js
 *.d.ts
