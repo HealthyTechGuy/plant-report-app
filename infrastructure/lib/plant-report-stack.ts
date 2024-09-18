@@ -19,10 +19,10 @@ export class PlantReportStack extends cdk.Stack {
         // Define Lambda function for handling the requests
         const plantReportLambda = new lambda.Function(this, 'PlantReportLambda', {
             runtime: lambda.Runtime.PROVIDED_AL2,  // Updated to go1.20 or latest
-            code: lambda.Code.fromAsset('../dist/plant-report-lambda' + ".zip"),
-            handler: 'main',
+            code: lambda.Code.fromAsset('../dist/plant-report-lambda.zip'),
+            handler: 'bootstrap',  // Dummy value, not used by custom runtime
             environment: {
-                TABLE_NAME: 'your-dynamodb-table-name',
+                TABLE_NAME: 'dynamodb-table-name',
                 BUCKET_NAME: reportBucket.bucketName,
             },
         });

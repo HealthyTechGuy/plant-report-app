@@ -12,9 +12,9 @@ all: build deploy
 # Build the Go application
 build:
 	mkdir -p $(OUTPUT_DIR)
-	cd $(BUILD_DIR) && go build -o $(OUTPUT_DIR)
+	cd $(BUILD_DIR) && GOOS=linux GOARCH=amd64 go build -o ../../dist/bootstrap
 	# Package the binary into a zip file
-	cd $(DIST_DIR) && zip $(BINARY_NAME).zip $(BINARY_NAME)
+	cd $(DIST_DIR) && zip -r9 plant-report-lambda.zip bootstrap
 
 # Deploy using CDK
 deploy:
