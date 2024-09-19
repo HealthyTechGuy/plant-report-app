@@ -29,6 +29,14 @@ A serverless application that generates PDF reports with detailed information ab
 - AWS CLI
 - AWS Account
 
+## Running project unit tests
+
+I've added a github workflow file which will automatically run the project tests on deployment but if you wish to run them locally you can by using either of these commands:
+
+`go test ./internal/plant-service` & `go test ./pkg/pdf`
+`go test ./...`
+`make test` 
+
 ## Usage
 
 - Use the API Gateway URL to make requests to your Lambda function.
@@ -37,14 +45,5 @@ A serverless application that generates PDF reports with detailed information ab
 `curl -X POST https://your-api-id.execute-api.region.amazonaws.com/prod/generate-report \
 -H "Content-Type: application/json" \
 -d '{"location": "your-location", "plant": "Blueberry Bush"}'`
-
-## Usage
-
-- To run tests:
-
-- `go test ./internal/plant-service` & `go test ./pkg/pdf`
-- OR `go test ./...`
-- OR `make test` 
-
 
   
