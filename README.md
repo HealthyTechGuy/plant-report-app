@@ -42,9 +42,9 @@ A serverless application that generates PDF reports with detailed information ab
 
 - To run tests:
 
-- go test ./internal/plant-service
-- go test ./pkg/pdf
-- OR go test ./...
+- `go test ./internal/plant-service` & `go test ./pkg/pdf`
+- OR `go test ./...`
+- OR `make test` 
 
 
   
