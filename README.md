@@ -34,8 +34,10 @@ A serverless application that generates PDF reports with detailed information ab
 I've added a github workflow file which will automatically run the project tests on deployment but if you wish to run them locally you can by using either of these commands:
 
 `go test ./internal/plant-service` & `go test ./pkg/pdf`
-`go test ./...`
-`make test` 
+
+`go test ./...`  
+
+`make test`  (My preference)
 
 ## Usage
 
