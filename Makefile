@@ -24,5 +24,8 @@ deploy:
 clean:
 	rm -rf $(OUTPUT_DIR)
 
+test: 
+	go test ./...
+
 # Run all targets
 run: build deploy
