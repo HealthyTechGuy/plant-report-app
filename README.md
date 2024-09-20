@@ -14,7 +14,7 @@ A serverless application that generates PDF reports with detailed information ab
 - Orange Tree
 - Kale
 
-## Architecture
+## Serverless Architecture
 
 - **AWS Lambda**: Executes the PDF generation logic.
 - **DynamoDB**: Stores plant information (e.g., growing hardness zone).
