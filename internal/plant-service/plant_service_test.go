@@ -33,7 +33,7 @@ func TestGetPlantInfo_Success(t *testing.T) {
 
 	mockDynamoDB.EXPECT().GetItem(gomock.Any()).Return(&dynamodb.GetItemOutput{
 		Item: map[string]*dynamodb.AttributeValue{
-			"id":               {S: aws.String(expectedPlantInfo.ID)},
+			"PlantID":          {S: aws.String(expectedPlantInfo.ID)},
 			"name":             {S: aws.String(expectedPlantInfo.Name)},
 			"growing_period":   {S: aws.String(expectedPlantInfo.GrowingPeriod)},
 			"optimal_planting": {S: aws.String(expectedPlantInfo.OptimalPlanting)},

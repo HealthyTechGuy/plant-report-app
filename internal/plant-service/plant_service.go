@@ -41,7 +41,7 @@ func (s *PlantService) GetPlantInfo(plantID string) (pi models.PlantInfo, err er
 	result, err := s.dynamoDBClient.GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(s.tableName),
 		Key: map[string]*dynamodb.AttributeValue{
-			"id": {
+			"PlantID": {
 				S: aws.String(plantID),
 			},
 		},
@@ -56,7 +56,7 @@ func (s *PlantService) GetPlantInfo(plantID string) (pi models.PlantInfo, err er
 	}
 
 	plantInfo := models.PlantInfo{
-		ID:              *result.Item["id"].S,
+		ID:              *result.Item["PlantID"].S,
 		Name:            *result.Item["name"].S,
 		GrowingPeriod:   *result.Item["growing_period"].S,
 		OptimalPlanting: *result.Item["optimal_planting"].S,
