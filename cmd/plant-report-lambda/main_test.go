@@ -31,6 +31,9 @@ func TestHandleRequest_Success(t *testing.T) {
 	// Mock PDF generation with []byte return type
 	mockPDFGenerator.On("GeneratePDF", mock.Anything, plantInfo).Return([]byte("PDF content"), nil)
 
+	// Mock S3 upload
+	mockPDFGenerator.On("UploadToS3", []byte("PDF content"), "plant-report-bucket", "file.pdf").Return("https://plant-report-bucket.s3.amazonaws.com/file.pdf", nil)
+
 	// Set the global variables
 	plantService = mockPlantService
 	pdfGenerator = mockPDFGenerator
@@ -63,6 +66,7 @@ func TestHandleRequest_Success(t *testing.T) {
 	// Assert the PDF URL in the response
 	mockPlantService.AssertCalled(t, "GetPlantInfo", "blueberry")
 	mockPDFGenerator.AssertCalled(t, "GeneratePDF", mock.Anything, plantInfo)
+	mockPDFGenerator.AssertCalled(t, "UploadToS3", []byte("PDF content"), "plant-report-bucket", "file.pdf")
 }
 
 func TestHandleRequest_InvalidRequestBody(t *testing.T) {

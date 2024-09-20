@@ -2,9 +2,13 @@ package pdf
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 
 	models "github.com/HealthyTechGuy/plant-report-app/models" // Import shared models
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/jung-kurt/gofpdf"
 )
 
@@ -42,4 +46,24 @@ func (s *PDFService) GeneratePDF(userLocation models.UserLocation, plantInfo mod
 	}
 
 	return buf.Bytes(), nil
+}
+
+func (s *PDFService) UploadToS3(data []byte, bucket, key string) (string, error) {
+	sess := session.Must(session.NewSession())
+	svc := s3.New(sess)
+
+	// Create an S3 PutObjectInput with the byte data
+	_, err := svc.PutObject(&s3.PutObjectInput{
+		Bucket:      aws.String(bucket),
+		Key:         aws.String(key),
+		Body:        bytes.NewReader(data),
+		ContentType: aws.String("application/pdf"),
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to upload file to S3: %w", err)
+	}
+
+	s3URL := fmt.Sprintf("https://%s.s3.amazonaws.com/%s", bucket, key)
+	log.Printf("File uploaded to: %s", s3URL)
+	return s3URL, nil
 }
