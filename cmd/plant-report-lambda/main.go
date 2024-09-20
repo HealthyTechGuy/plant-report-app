@@ -62,7 +62,16 @@ func HandleRequest(ctx context.Context, request events.APIGatewayProxyRequest) (
 		return responseWithError(500, "Failed to generate PDF report"), nil
 	}
 
-	// TODO - add method in here to upload report to S3.
+	bucket := "plant-report-bucket"
+	key := "file.pdf"
+
+	s3URL, err := pdfGenerator.UploadToS3(pdfURL, bucket, key)
+	if err != nil {
+		log.Fatalf("Error uploading to S3: %v", err)
+	}
+
+	log.Printf("Uploaded PDF available at: %s", s3URL)
+
 	logger.Info("pdfURL: ", zap.Any("value:", pdfURL))
 
 	// Return the success response with the PDF URL

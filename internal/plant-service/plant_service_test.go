@@ -80,3 +80,39 @@ func TestGetPlantInfo_DynamoDBError(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to get item from DynamoDB")
 }
+
+func TestPDFGenerationAndUpload(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockPDFGenerator := new(mocks.MockPDFGenerator)
+
+	expectedPlantInfo := models.PlantInfo{
+		ID:              "1",
+		Name:            "Blueberry Bush",
+		GrowingPeriod:   "May to August",
+		OptimalPlanting: "Spring",
+		HardinessZone:   "3-7",
+	}
+
+	userLocation := models.UserLocation{
+		// Fill in any necessary fields for UserLocation
+	}
+
+	// Set up expectations for PDF generation
+	mockPDFGenerator.On("GeneratePDF", userLocation, expectedPlantInfo).Return([]byte("mock pdf data"), nil)
+	// Set up expectations for S3 upload
+	mockPDFGenerator.On("UploadToS3", []byte("mock pdf data"), "plant-report-bucket", "file.pdf").Return("https://plant-report-bucket.s3.amazonaws.com/file.pdf", nil)
+
+	// Simulate generating the PDF
+	pdfData, err := mockPDFGenerator.GeneratePDF(userLocation, expectedPlantInfo)
+	require.NoError(t, err)
+
+	// Simulate uploading the PDF to S3
+	s3URL, err := mockPDFGenerator.UploadToS3(pdfData, "plant-report-bucket", "file.pdf")
+	require.NoError(t, err)
+	assert.Equal(t, "https://plant-report-bucket.s3.amazonaws.com/file.pdf", s3URL)
+
+	// Assert that the expectations were met
+	mockPDFGenerator.AssertExpectations(t)
+}

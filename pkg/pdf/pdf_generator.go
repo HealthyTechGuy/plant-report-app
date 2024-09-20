@@ -7,4 +7,5 @@ import (
 // PDFGenerator defines the methods for generating PDF reports
 type PDFGenerator interface {
 	GeneratePDF(userLocation models.UserLocation, plantInfo models.PlantInfo) ([]byte, error)
+	UploadToS3(data []byte, bucket, key string) (string, error)
 }
