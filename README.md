@@ -1,5 +1,8 @@
 # Plant Report Generator
 
+![image](https://github.com/user-attachments/assets/da55e4df-86eb-4932-aa38-d510b512d8dd)
+
+
 A serverless application that generates PDF reports with detailed information about how to grow specific plants, fruits, or vegetables in your chosen area. This tool delivers valuable insights and actionable recommendations aimed at optimizing the growth and success of your chosen flora. Happy Growing!
 
 ## Example output
