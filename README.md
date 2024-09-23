@@ -3,7 +3,8 @@
 A serverless application that generates PDF reports with detailed information about how to grow specific plants, fruits, or vegetables in your chosen area. This tool delivers valuable insights and actionable recommendations aimed at optimizing the growth and success of your chosen flora. Happy Growing!
 
 ## Example output
-![image](https://github.com/user-attachments/assets/ebd92fd2-af39-408f-b7f1-69211c7c3e5f)
+![image](https://github.com/user-attachments/assets/4f2ec5ad-4498-4191-bdeb-bb3922cac2cb)
+
 
 
 ## Features
