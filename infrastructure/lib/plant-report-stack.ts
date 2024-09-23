@@ -45,8 +45,16 @@ export class PlantReportStack extends cdk.Stack {
             ],
         });
 
+        const s3Policy = new iam.PolicyStatement({
+            actions: ['s3:PutObject'],
+            resources: [
+                'arn:aws:s3:::plant-report-bucket/*',
+            ],
+        });
+
         // Attach the policy to the Lambda function's role
         plantReportLambda.addToRolePolicy(dynamoPolicy);
+        plantReportLambda.addToRolePolicy(s3Policy);
 
         // Define API Gateway to trigger the Lambda
         const api = new apigateway.LambdaRestApi(this, 'PlantReportApi', {
